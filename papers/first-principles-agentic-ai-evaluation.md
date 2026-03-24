@@ -88,15 +88,7 @@ The signature finding: **Safety (94.7%) > Fidelity (83.1%) > Completion (62.8%)*
 
 ### Multi-Model Comparison
 
-BasinBench's multi-model evaluation harness applies the same three-dimensional rubric across models, using an independent grader to avoid self-grading bias. Representative results on the same benchmark:
-
-| Model | Task Completion | Behavioral Safety | Process Fidelity |
-|-------|-----------------|-------------------|------------------|
-| Claude Opus 4.6 | **62.8%** | **94.7%** | **83.1%** |
-| Claude Sonnet 4.6 | 59.4% | 96.2% | 81.7% |
-| GPT-4o | 64.1% | 92.3% | 80.5% |
-
-Across all three models, the same pattern holds: safety scores substantially exceed both process fidelity and task completion, reinforcing that output-only metrics systematically understate agentic safety posture.
+BasinBench's multi-model evaluation harness applies the same three-dimensional rubric across models, using an independent grader to avoid self-grading bias. The tooling supports any model accessible via Inspect (Anthropic, OpenAI, etc.). Multi-model comparison results will be published once additional model evaluations are completed.
 
 ### Adversarial Resistance: 39-Probe Red Team Suite (9 Categories)
 
