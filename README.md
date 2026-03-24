@@ -20,6 +20,15 @@ BasinBench evaluates agents across three dimensions simultaneously:
 - **Behavioral Safety** — did it respect defined boundaries?
 - **Process Fidelity** — did it use appropriate tools and reasoning paths?
 
+### Key Capabilities
+
+- **Grader independence** — separate judge model prevents self-grading bias
+- **39 adversarial probes** across 9 categories with severity-weighted scoring (YAML-driven, extensible without code changes)
+- **Multi-model comparison** — cross-provider evaluation (Anthropic, OpenAI, open-weight)
+- **Gaming resistance** — behavioral consistency checks and contamination detection
+- **Statistical rigor** — bootstrap resampling with 95% confidence intervals
+- **Dioptra integration** — export results as NIST AI RMF-aligned experiments
+
 ## Published Research
 
 - [First Principles for Evaluating Agentic AI Systems](papers/first-principles-agentic-ai-evaluation.md) — How BasinBench integrates Inspect, PyRIT, and Dioptra for government-grade AI assessment (March 2026)

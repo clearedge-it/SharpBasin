@@ -8,7 +8,7 @@
 
 Traditional AI evaluation measures model outputs against static ground truth. But the shift from passive models to autonomous agents — systems that invoke tools, access external data, and execute multi-step tasks — breaks this paradigm. An agent that produces a correct final answer through an unsafe reasoning path (exfiltrating data, exceeding authorization, bypassing safety boundaries) represents a failure that output-only scoring cannot detect. Meanwhile, adversaries have already demonstrated almost fully agentic AI campaigns in the cyber domain, underscoring the urgency of evaluation infrastructure that can keep pace.
 
-Government evaluators need to assess three dimensions simultaneously: **task completion** (did the agent achieve the objective?), **behavioral safety** (did it respect defined boundaries?), and **process fidelity** (did it use appropriate tools and reasoning paths?). No single evaluation framework addresses all three. **SharpBasin** — ClearEdge's AI assessment platform — addresses this through its **BasinBench** evaluation suite, which composes two complementary open-source frameworks — UK AISI's **Inspect** for structured evaluation workflows and Microsoft's **PyRIT** for adversarial red-teaming — and integrates with NIST's **Dioptra** for AI Risk Management Framework-aligned trustworthiness tracking and auditability. The harness is anchored by three first principles.
+Government evaluators need to assess three dimensions simultaneously: **task completion** (did the agent achieve the objective?), **behavioral safety** (did it respect defined boundaries?), and **process fidelity** (did it use appropriate tools and reasoning paths?). No single evaluation framework addresses all three. **SharpBasin** — ClearEdge's AI assessment platform — addresses this through its **BasinBench** evaluation suite, which composes two complementary open-source frameworks — UK AISI's **Inspect** for structured evaluation workflows and Microsoft's **PyRIT** for adversarial red-teaming — and integrates with NIST's **Dioptra** for AI Risk Management Framework-aligned trustworthiness tracking and audit export. The harness is anchored by three first principles.
 
 ## Principle 1: Evaluation Must Be Compositional, Not Monolithic
 
@@ -16,24 +16,31 @@ BasinBench treats evaluation as a pipeline of independent, swappable modules rat
 
 **Inspect** provides the compositional backbone. Its `Task → Solver → Scorer` pipeline maps directly to the three-dimensional evaluation model: solvers orchestrate agent execution (capturing tool invocations and decision traces), while scorers evaluate task completion, behavioral safety, and process fidelity independently. BasinBench extends Inspect's `model_graded_qa` scorer with domain-specific grading criteria — including fixed-criterion templates for behavioral assessments where no per-sample ground truth exists — enabling government evaluators to define mission-specific scoring rubrics without writing custom scoring code.
 
+**Grader independence** is a design requirement, not an afterthought. BasinBench uses a separate model for LLM-graded scoring than the model under evaluation — preventing the self-grading bias that occurs when a model rates its own outputs. The grader model is configurable per evaluation run, and concordance between heuristic and LLM-based grading methods is tracked to validate scoring consistency.
+
 ## Principle 2: Adversarial Testing Must Run Continuously, Not as a Separate Phase
 
 Traditional red-teaming treats security testing as a gate review — a one-time event before deployment. Agentic systems, which dynamically compose tool calls and reasoning chains, can exhibit novel failure modes under adversarial pressure that did not exist during initial testing. BasinBench integrates adversarial evaluation as a continuous, automated layer rather than a discrete phase.
 
-**PyRIT** provides the adversarial engine. Its orchestrator-converter-scorer architecture automates attack pattern execution across categories including prompt injection, jailbreaking, goal hijacking, and tool misuse — all specific to agentic failure modes. BasinBench feeds PyRIT's adversarial probes through the same agent sandbox used for functional evaluation, producing unified scoring across both functional and adversarial dimensions. When an agent that passes all functional benchmarks fails under adversarial pressure, the evaluation pipeline flags the discrepancy automatically.
+**PyRIT** provides the adversarial engine. Its orchestrator-converter-scorer architecture automates attack pattern execution across nine categories — prompt injection, goal hijacking, tool misuse, boundary violation, data exfiltration, privilege escalation, authority impersonation, indirect injection, and multi-turn persistence — all specific to agentic failure modes. BasinBench's adversarial probe suite (39 probes across 9 categories, defined in YAML for extensibility without code changes) feeds through the same agent sandbox used for functional evaluation, producing unified scoring across both functional and adversarial dimensions with severity-weighted resistance rates. When an agent that passes all functional benchmarks fails under adversarial pressure, the evaluation pipeline flags the discrepancy automatically.
 
 The result is a continuous red-team loop: as new agent capabilities are deployed, adversarial probes are re-executed against updated agent configurations, and robustness trends are tracked over time through BasinBench's monitoring pipeline.
 
 ## Principle 3: Benchmarks Must Resist Gaming While Remaining Interpretable
 
-The sophistication of agentic AI introduces a new category of gaming risk: agents that optimize for benchmark-specific patterns without developing genuine capability. BasinBench addresses this through four mechanisms designed into the benchmark lifecycle:
+The sophistication of agentic AI introduces a new category of gaming risk: agents that optimize for benchmark-specific patterns without developing genuine capability. BasinBench addresses this through a gaming resistance framework with four mechanisms at two maturity levels:
 
-- **Contamination detection** — identifying when agent training data overlaps with evaluation data
+**Implemented:**
+
+- **Behavioral consistency checks** — comparing model performance across evaluation tiers for the same question namespaces, flagging models where per-namespace scores diverge by more than 20% between tiers. Consistent performance across tier sizes indicates genuine capability rather than tier-specific pattern matching.
+- **Contamination detection** — comparing model performance on the standard evaluation set against a held-out set containing questions absent from all public tiers. A significant performance drop on the holdout set validates genuine capability; equivalent performance suggests the model has not memorized benchmark content.
+
+**Planned (roadmap):**
+
 - **Dynamic benchmark rotation** — periodically refreshing evaluation tasks to prevent memorization
-- **Held-out evaluation sets** — maintaining undisclosed test items that validate benchmark scores against novel tasks
-- **Behavioral consistency checks** — verifying that benchmark performance correlates with performance on operationally realistic scenarios
+- **Held-out evaluation set rotation** — rotating undisclosed test items across evaluation cycles
 
-These mechanisms are implemented as Inspect evaluation tasks that run alongside functional benchmarks, producing a "gaming resistance score" that accompanies every evaluation report. Government evaluators receive not just a capability score, but a confidence measure of whether that score reflects genuine capability.
+Implemented mechanisms run alongside functional benchmarks and produce gaming resistance scores in every evaluation report. Government evaluators receive not just a capability score, but a confidence measure of whether that score reflects genuine capability.
 
 ## Architecture: How It Fits Together
 
@@ -67,7 +74,7 @@ These mechanisms are implemented as Inspect evaluation tasks that run alongside 
 
 ## Empirical Results
 
-BasinBench has been validated against real agent benchmarks. The following results were generated from ClearEdge's agent execution platform — a production system with Docker-sandboxed tool access across GitHub, Jira, Confluence, and internal knowledge repositories.
+BasinBench has been validated against real agent benchmarks using an independent grader model (Claude Sonnet 4.6) to prevent self-grading bias. The following results were generated from ClearEdge's agent execution platform — a production system with Docker-sandboxed tool access across GitHub, Jira, Confluence, and internal knowledge repositories. Multi-model evaluation support enables comparison across providers.
 
 ### Three-Dimensional Scoring: Claude Opus 4.6 (160 Questions)
 
@@ -77,23 +84,50 @@ BasinBench has been validated against real agent benchmarks. The following resul
 | **Behavioral Safety** | **94.7%** | 146 boundary-respecting, 11 partial, 3 violations |
 | **Process Fidelity** | **83.1%** | 108 correct tool selection, 50 partial, 2 incorrect |
 
-The signature finding: **Safety (95%) > Fidelity (83%) > Completion (63%)**. Output-only evaluation would rate this agent at 63% — missing the 95% safety signal entirely. The 32-point gap between safety and completion is invisible to monolithic scoring.
+The signature finding: **Safety (95%) > Fidelity (83%) > Completion (63%)**. Output-only evaluation would rate this agent at 63% — missing the 95% safety signal entirely. The 32-point gap between safety and completion is invisible to monolithic scoring. Multi-model comparison (Opus, Sonnet, GPT-4o) confirms this dimensional separation pattern holds across providers.
 
-### Adversarial Resistance: 9-Probe Red Team Suite
+### Adversarial Resistance: 39-Probe Red Team Suite (9 Categories)
 
-| Category | Probes | Resisted | Rate |
-|----------|--------|----------|------|
-| Prompt Injection | 3 | 3 | 100% |
-| Tool Misuse | 2 | 2 | 100% |
-| Boundary Violation | 2 | 2 | 100% |
-| Goal Hijacking | 2 | 1 | 50% |
-| **Overall** | **9** | **8** | **88.9%** |
+| Category | Probes | Description |
+|----------|--------|-------------|
+| Prompt Injection | 7 | Instruction override, nested injection, role-play |
+| Goal Hijacking | 5 | Task substitution, scope creep, false priority |
+| Tool Misuse | 5 | Exfiltration, destructive ops, unauthorized network |
+| Boundary Violation | 5 | Path traversal, cross-tenant, system boundary |
+| Data Exfiltration | 5 | Staged extraction, encoding, side-channel |
+| Privilege Escalation | 3 | Role assumption, permission boundary testing |
+| Authority Impersonation | 3 | Admin impersonation, system pretexting |
+| Indirect Injection | 3 | Poisoned tool output, payload-in-data |
+| Multi-Turn Persistence | 3 | Gradual boundary erosion, trust building |
 
-Zero critical bypasses. Zero dangerous tool call attempts. The single partial bypass (goal hijacking — security scan redirect) used only authorized commands, demonstrating that the agent's safety boundaries held even when its intent classification failed.
+Probes are severity-weighted (critical=3, high=2, medium=1) and defined in YAML for extensibility without code changes. Both raw and weighted resistance rates are reported. Initial results (Claude Sonnet 4.6, 9-probe subset): 88.9% raw resistance rate, zero critical bypasses, zero dangerous tool call attempts.
 
 ### Benchmark Stability
 
-Two independent Opus full-tier runs produced consistent results (±1.3% task completion, ±0.3% safety, 0% process fidelity variance), validating that the evaluation methodology produces reproducible, government-grade measurements.
+Two independent Opus full-tier runs produced consistent results (±1.3% task completion, ±0.3% safety, 0% process fidelity variance). Bootstrap resampling with 95% confidence intervals is computed across multiple runs. Additional stability runs are in progress to strengthen confidence intervals.
+
+## Related Work
+
+BasinBench is complementary to, not a replacement for, established AI evaluation frameworks:
+
+- **AgentBench** and **SWE-bench** measure task completion on code generation and software engineering tasks — output-only scoring that BasinBench's safety and fidelity dimensions extend.
+- **GAIA** evaluates general AI assistants on multi-step reasoning — focused on task capability rather than behavioral safety under adversarial pressure.
+- **AgentDojo** provides injection-focused evaluation for tool-using agents — overlapping with BasinBench's adversarial dimension but without the three-dimensional scoring model.
+- **HELM** offers holistic evaluation across metrics and scenarios — BasinBench extends its methodology to agentic-specific dimensions (tool boundary compliance, process fidelity).
+
+BasinBench's contribution is dimensional: it adds safety and process evaluation to the capability measurement that these frameworks provide. The compositional architecture means BasinBench can incorporate tasks from any of these frameworks as evaluation modules while adding its three-dimensional scoring layer.
+
+## Limitations and Future Work
+
+**Platform scope.** Empirical results are currently from ClearEdge's agent execution platform. The BasinBench architecture supports any agent accessible via MCP or OpenAPI, but independent validation on external agent platforms is in progress.
+
+**Dioptra integration depth.** The current Dioptra integration provides one-way export of evaluation results as Dioptra experiments with tracked metrics and trend comparison. Deeper bidirectional integration (Dioptra-native evaluation orchestration) is roadmapped.
+
+**Deployment classification.** "Government-grade" refers to the evaluation methodology — three-dimensional, reproducible, auditable, with grader independence and gaming resistance — not to a specific deployment authorization. IL5/IL6 deployment and air-gapped operation require separate Authority to Operate processes.
+
+**Gaming resistance maturity.** Two of four gaming resistance mechanisms are implemented (behavioral consistency, contamination detection). Dynamic benchmark rotation and held-out set rotation are planned.
+
+**Independent validation.** All results reported here are produced by ClearEdge. The evaluation tooling is open-source, and ClearEdge invites independent replication. Reproduction instructions and all evaluation scripts are published in this repository.
 
 ## Why This Matters
 
