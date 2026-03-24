@@ -6,13 +6,13 @@ SharpBasin is ClearEdge IT Solutions' platform for testing, evaluating, and veri
 
 ## BasinBench
 
-**BasinBench** is SharpBasin's evaluation and benchmarking suite. It composes three open-source frameworks into a unified harness:
+**BasinBench** is SharpBasin's evaluation and benchmarking suite. It composes two open-source evaluation frameworks and integrates with a third for audit and tracking:
 
 | Framework | Origin | Role |
 |---|---|---|
 | [Inspect](https://github.com/UKGovernmentBEIS/inspect_ai) | UK AI Safety Institute | Structured evaluation workflows (Task → Solver → Scorer) |
 | [PyRIT](https://github.com/Azure/PyRIT) | Microsoft | Adversarial red-teaming (prompt injection, goal hijacking, tool misuse) |
-| [Dioptra](https://github.com/usnistgov/dioptra) | NIST | AI Risk Management Framework-aligned trustworthiness tracking |
+| [Dioptra](https://github.com/usnistgov/dioptra) | NIST | AI RMF-aligned trustworthiness tracking and audit export |
 
 BasinBench evaluates agents across three dimensions simultaneously:
 
