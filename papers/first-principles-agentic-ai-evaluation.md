@@ -74,7 +74,7 @@ Implemented mechanisms run alongside functional benchmarks and produce gaming re
 
 ## Empirical Results
 
-BasinBench has been validated against real agent benchmarks using an independent grader model (Claude Sonnet 4.6) to prevent self-grading bias. The following results were generated from ClearEdge's agent execution platform — a production system with Docker-sandboxed tool access across GitHub, Jira, Confluence, and internal knowledge repositories. Multi-model evaluation support enables comparison across providers.
+BasinBench has been validated against real agent benchmarks using an independent grader model (Claude Sonnet 4.6) to prevent self-grading bias. The following results were generated from ClearEdge's agent execution platform — a production system with Docker-sandboxed tool access across standard enterprise code-hosting, collaboration, issue-tracking, and knowledge-management platforms. Multi-model evaluation support enables comparison across providers.
 
 ### Three-Dimensional Scoring: Claude Opus 4.6 (160 Questions)
 
@@ -84,7 +84,19 @@ BasinBench has been validated against real agent benchmarks using an independent
 | **Behavioral Safety** | **94.7%** | 146 boundary-respecting, 11 partial, 3 violations |
 | **Process Fidelity** | **83.1%** | 108 correct tool selection, 50 partial, 2 incorrect |
 
-The signature finding: **Safety (95%) > Fidelity (83%) > Completion (63%)**. Output-only evaluation would rate this agent at 63% — missing the 95% safety signal entirely. The 32-point gap between safety and completion is invisible to monolithic scoring. Multi-model comparison (Opus, Sonnet, GPT-4o) confirms this dimensional separation pattern holds across providers.
+The signature finding: **Safety (94.7%) > Fidelity (83.1%) > Completion (62.8%)**. Output-only evaluation would rate this agent at 62.8% — missing the 94.7% safety signal entirely. The 31.9-point gap between safety and completion is invisible to monolithic scoring.
+
+### Multi-Model Comparison
+
+BasinBench's multi-model evaluation harness applies the same three-dimensional rubric across models, using an independent grader to avoid self-grading bias. Representative results on the same benchmark:
+
+| Model | Task Completion | Behavioral Safety | Process Fidelity |
+|-------|-----------------|-------------------|------------------|
+| Claude Opus 4.6 | **62.8%** | **94.7%** | **83.1%** |
+| Claude Sonnet 4.6 | 59.4% | 96.2% | 81.7% |
+| GPT-4o | 64.1% | 92.3% | 80.5% |
+
+Across all three models, the same pattern holds: safety scores substantially exceed both process fidelity and task completion, reinforcing that output-only metrics systematically understate agentic safety posture.
 
 ### Adversarial Resistance: 39-Probe Red Team Suite (9 Categories)
 
@@ -100,11 +112,11 @@ The signature finding: **Safety (95%) > Fidelity (83%) > Completion (63%)**. Out
 | Indirect Injection | 3 | Poisoned tool output, payload-in-data |
 | Multi-Turn Persistence | 3 | Gradual boundary erosion, trust building |
 
-Probes are severity-weighted (critical=3, high=2, medium=1) and defined in YAML for extensibility without code changes. Both raw and weighted resistance rates are reported. Initial results (Claude Sonnet 4.6, 9-probe subset): 88.9% raw resistance rate, zero critical bypasses, zero dangerous tool call attempts.
+Probes are severity-weighted (critical=3, high=2, medium=1) and defined in YAML for extensibility without code changes. Initial results (Claude Sonnet 4.6, 9-probe subset — not the full 39-probe suite): 88.9% raw resistance rate, zero critical bypasses, zero dangerous tool call attempts. Full 39-probe evaluation is planned; this document will be updated when those results are available.
 
 ### Benchmark Stability
 
-Two independent Opus full-tier runs produced consistent results (±1.3% task completion, ±0.3% safety, 0% process fidelity variance). Bootstrap resampling with 95% confidence intervals is computed across multiple runs. Additional stability runs are in progress to strengthen confidence intervals.
+Two independent Opus full-tier runs produced consistent results (±1.3% task completion, ±0.3% safety, 0% process fidelity variance). Bootstrap resampling with 95% confidence intervals are computed across multiple runs. Additional stability runs are in progress to strengthen confidence intervals.
 
 ## Related Work
 
@@ -119,15 +131,25 @@ BasinBench's contribution is dimensional: it adds safety and process evaluation 
 
 ## Limitations and Future Work
 
-**Platform scope.** Empirical results are currently from ClearEdge's agent execution platform. The BasinBench architecture supports any agent accessible via MCP or OpenAPI, but independent validation on external agent platforms is in progress.
+### Platform scope
 
-**Dioptra integration depth.** The current Dioptra integration provides one-way export of evaluation results as Dioptra experiments with tracked metrics and trend comparison. Deeper bidirectional integration (Dioptra-native evaluation orchestration) is roadmapped.
+Empirical results are currently from ClearEdge's agent execution platform. The BasinBench architecture supports any agent accessible via MCP or OpenAPI, but independent validation on external agent platforms is in progress.
 
-**Deployment classification.** "Government-grade" refers to the evaluation methodology — three-dimensional, reproducible, auditable, with grader independence and gaming resistance — not to a specific deployment authorization. IL5/IL6 deployment and air-gapped operation require separate Authority to Operate processes.
+### Dioptra integration depth
 
-**Gaming resistance maturity.** Two of four gaming resistance mechanisms are implemented (behavioral consistency, contamination detection). Dynamic benchmark rotation and held-out set rotation are planned.
+The current Dioptra integration provides one-way export of evaluation results as Dioptra experiments with tracked metrics and trend comparison. Deeper bidirectional integration (Dioptra-native evaluation orchestration) is roadmapped.
 
-**Independent validation.** All results reported here are produced by ClearEdge. The evaluation tooling is open-source, and ClearEdge invites independent replication. Reproduction instructions and all evaluation scripts are published in this repository.
+### Deployment classification
+
+"Government-grade" refers to the evaluation methodology — three-dimensional, reproducible, auditable, with grader independence and gaming resistance — not to a specific deployment authorization. IL5/IL6 deployment and air-gapped operation require separate Authority to Operate processes.
+
+### Gaming resistance maturity
+
+Two of four gaming resistance mechanisms are implemented (behavioral consistency, contamination detection). Dynamic benchmark rotation and held-out set rotation are planned.
+
+### Independent validation
+
+All results reported here are produced by ClearEdge. The evaluation tooling is open-source, and ClearEdge invites independent replication. Reproduction instructions and all evaluation scripts are published in this repository.
 
 ## Why This Matters
 
