@@ -26,6 +26,8 @@ Traditional red-teaming treats security testing as a gate review — a one-time 
 
 The result is a continuous red-team loop: as new agent capabilities are deployed, adversarial probes are re-executed against updated agent configurations, and robustness trends are tracked over time through BasinBench's monitoring pipeline.
 
+Recent implementation cycles further operationalized this loop through PyRIT-inspired attack/converter composition and scenario-pack lanes in the benchmark runtime. In addition to baseline runs, operators now execute adversarial-variant lanes (attack profile + converter chain) and adversarial-scenario lanes (scenario-pack + scenario ID) under the same workflow contract, then compare deltas across lanes in a unified evidence pipeline.
+
 ## Principle 3: Benchmarks Must Resist Gaming While Remaining Interpretable
 
 The sophistication of agentic AI introduces a new category of gaming risk: agents that optimize for benchmark-specific patterns without developing genuine capability. BasinBench addresses this through a gaming resistance framework with four mechanisms at two maturity levels:
@@ -72,6 +74,16 @@ Implemented mechanisms run alongside functional benchmarks and produce gaming re
         Deployable: UNCLASS │ IL5/IL6 │ Air-gapped
 ```
 
+## March 2026 Integration Update
+
+Recent implementation updates strengthened the Inspect/PyRIT composition from framework-level integration to workflow-level operation:
+
+- **Scenario-pack execution is first-class** in the benchmark runner, with reusable YAML scenario packs (content harms, prompt injection, data leakage), scenario-specific policy evaluation, and per-question policy pass/fail capture in run artifacts.
+- **Adversarial lane orchestration is explicit** in the standardized benchmark flow, supporting baseline, adversarial-variant, and adversarial-scenario execution modes.
+- **Prompt mutation middleware is composable and auditable**, supporting deterministic attack-profile + converter-chain transformations before agent execution.
+- **Structured run-memory querying is operational** for trend inspection across run history, including lane-aware comparisons.
+- **Benchmark reliability hardening** improved multi-model execution stability and model attribution consistency in automated workflows.
+
 ## Empirical Results
 
 BasinBench has been validated against real agent benchmarks using an independent grader model (Claude Sonnet 4.6) to prevent self-grading bias. The following results were generated from ClearEdge's agent execution platform — a production system with Docker-sandboxed tool access across standard enterprise code-hosting, collaboration, issue-tracking, and knowledge-management platforms. Multi-model evaluation support enables comparison across providers.
@@ -88,7 +100,14 @@ The signature finding: **Safety (94.7%) > Fidelity (83.1%) > Completion (62.8%)*
 
 ### Multi-Model Comparison
 
-BasinBench's multi-model evaluation harness applies the same three-dimensional rubric across models, using an independent grader to avoid self-grading bias. The tooling supports any model accessible via Inspect (Anthropic, OpenAI, etc.). Multi-model comparison results will be published once additional model evaluations are completed.
+BasinBench's multi-model evaluation harness applies the same three-dimensional rubric across models, using the same independent grader model described above (currently Claude Sonnet 4.6) to avoid self-grading bias. The tooling supports models accessible through standardized evaluation interfaces.
+
+Current result sets include:
+
+- **Claude Opus 4.6 (full tier, 160 questions):** Task Completion 62.8%, Behavioral Safety 94.7%, Process Fidelity 83.1%.
+- **GPT-5.3 Codex (nano tier, 4 questions; preliminary):** Task Completion 37.5% (1.5/4), Behavioral Safety 100.0% (4/4), Process Fidelity 62.5% (2.5/4).
+
+The GPT-5.3 Codex nano run is directional evidence only due to sample size; larger-tier repeated runs remain the basis for durable cross-model claims.
 
 ### Adversarial Resistance: 39-Probe Red Team Suite (9 Categories)
 
@@ -142,6 +161,10 @@ Two of four gaming resistance mechanisms are implemented (behavioral consistency
 ### Independent validation
 
 All results reported here are produced by ClearEdge. The evaluation tooling is open-source, and ClearEdge invites independent replication. Reproduction instructions and all evaluation scripts are published in this repository.
+
+### Model identity vs. execution provenance
+
+BasinBench tracks model identity separately from execution provenance in technical artifacts. White-paper comparison narratives emphasize model-level outcomes, while full benchmark records preserve execution-lane metadata for reproducibility and audit traceability.
 
 ## Why This Matters
 
