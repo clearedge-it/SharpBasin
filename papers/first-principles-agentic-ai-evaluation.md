@@ -4,6 +4,8 @@
 
 ---
 
+> **Public release note:** This is a sanitized public edition. Internal implementation details have been removed while preserving the evaluation methodology, evidence, and conclusions.
+
 ## The Evaluation Gap for Agentic AI
 
 Traditional AI evaluation measures model outputs against static ground truth. But the shift from passive models to autonomous agents — systems that invoke tools, access external data, and execute multi-step tasks — breaks this paradigm. An agent that produces a correct final answer through an unsafe reasoning path (exfiltrating data, exceeding authorization, bypassing safety boundaries) represents a failure that output-only scoring cannot detect. Meanwhile, adversaries have already demonstrated almost fully agentic AI campaigns in the cyber domain, underscoring the urgency of evaluation infrastructure that can keep pace.
