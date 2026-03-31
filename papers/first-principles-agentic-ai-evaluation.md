@@ -26,7 +26,7 @@ Traditional red-teaming treats security testing as a gate review — a one-time 
 
 The result is a continuous red-team loop: as new agent capabilities are deployed, adversarial probes are re-executed against updated agent configurations, and robustness trends are tracked over time through BasinBench's monitoring pipeline.
 
-Recent implementation cycles further operationalized this loop through PyRIT-inspired attack/converter composition and scenario-pack lanes in the benchmark runtime. In addition to baseline runs, operators now execute adversarial-variant lanes (attack profile + converter chain) and adversarial-scenario lanes (scenario-pack + scenario ID) under the same workflow contract, then compare deltas across lanes in a unified evidence pipeline.
+Recent implementation cycles further operationalized this loop through PyRIT-inspired attack/converter composition and standardized adversarial execution modes. In addition to baseline runs, operators now execute adversarial-variant and adversarial-scenario modes under a common evaluation approach, then compare outcome deltas in a unified reporting view.
 
 ## Principle 3: Benchmarks Must Resist Gaming While Remaining Interpretable
 
@@ -78,11 +78,11 @@ Implemented mechanisms run alongside functional benchmarks and produce gaming re
 
 Recent implementation updates strengthened the Inspect/PyRIT composition from framework-level integration to workflow-level operation:
 
-- **Scenario-pack execution is first-class** in the benchmark runner, with reusable YAML scenario packs (content harms, prompt injection, data leakage), scenario-specific policy evaluation, and per-question policy pass/fail capture in run artifacts.
-- **Adversarial lane orchestration is explicit** in the standardized benchmark flow, supporting baseline, adversarial-variant, and adversarial-scenario execution modes.
-- **Prompt mutation middleware is composable and auditable**, supporting deterministic attack-profile + converter-chain transformations before agent execution.
-- **Structured run-memory querying is operational** for trend inspection across run history, including lane-aware comparisons.
-- **Benchmark reliability hardening** improved multi-model execution stability and model attribution consistency in automated workflows.
+- **Scenario-based adversarial execution is first-class**, covering representative harms such as content safety, prompt injection, and data leakage with policy-aligned evaluation.
+- **Adversarial mode orchestration is explicit** in the standardized benchmark flow, supporting baseline, adversarial-variant, and adversarial-scenario execution modes.
+- **Prompt transformation controls are composable and auditable**, supporting repeatable adversarial conditioning before agent execution.
+- **Historical trend analysis is operational** for run-over-run performance inspection across execution modes.
+- **Benchmark reliability hardening** improved multi-model execution stability and result attribution consistency in automated workflows.
 
 ## Empirical Results
 
@@ -108,6 +108,8 @@ Current result sets include:
 - **GPT-5.3 Codex (nano tier, 4 questions; preliminary):** Task Completion 37.5% (1.5/4), Behavioral Safety 100.0% (4/4), Process Fidelity 62.5% (2.5/4).
 
 The GPT-5.3 Codex nano run is directional evidence only due to sample size; larger-tier repeated runs remain the basis for durable cross-model claims.
+
+Here, *full tier* refers to the standard 160-question benchmark run, while *nano tier* refers to a 4-question smoke test; fractional counts such as "1.5/4" or "2.5/4" reflect partial-credit scoring, where substantially but not fully correct answers receive 0.5 points instead of 1.
 
 ### Adversarial Resistance: 39-Probe Red Team Suite (9 Categories)
 
@@ -164,7 +166,7 @@ All results reported here are produced by ClearEdge. The evaluation tooling is o
 
 ### Model identity vs. execution provenance
 
-BasinBench tracks model identity separately from execution provenance in technical artifacts. White-paper comparison narratives emphasize model-level outcomes, while full benchmark records preserve execution-lane metadata for reproducibility and audit traceability.
+BasinBench tracks model identity separately from execution provenance in evaluation records. White-paper comparison narratives emphasize model-level outcomes, while supporting records preserve reproducibility and audit traceability details.
 
 ## Why This Matters
 
