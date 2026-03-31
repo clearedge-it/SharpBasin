@@ -29,9 +29,9 @@ BasinBench evaluates agents across three dimensions simultaneously:
 - **Statistical rigor** — bootstrap resampling with 95% confidence intervals
 - **Dioptra integration** — export results as NIST AI RMF-aligned experiments
 
-## Published Research
+## Whitepaper
 
-- [First Principles for Evaluating Agentic AI Systems](papers/first-principles-agentic-ai-evaluation.md) — How BasinBench integrates Inspect, PyRIT, and Dioptra for government-grade AI assessment (March 2026)
+- [First Principles for Evaluating Agentic AI Systems](papers/first-principles-agentic-ai-evaluation.md) — Explains BasinBench's evaluation principles, architecture, and representative findings for agentic AI assessment.
 
 ## Framework Contributions
 
