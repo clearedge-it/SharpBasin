@@ -10,10 +10,10 @@ generalised for the broader Inspect AI community.
 
 | Type | Title | File | Status |
 |------|-------|------|--------|
-| Documentation | Multi-value scorer patterns for dimensional evaluation | [docs/multi-value-scorers.md](docs/multi-value-scorers.md) | Ready for PR |
-| Documentation | Approval policy patterns for tool-calling agents | [docs/approval-policy-patterns.md](docs/approval-policy-patterns.md) | Ready for PR |
+| Documentation | Multi-value scorer patterns for dimensional evaluation | [docs/multi-value-scorers.md](docs/multi-value-scorers.md) | Ready — submit via `2byrds/inspect_ai` fork |
+| Documentation | Approval policy patterns for tool-calling agents | [docs/approval-policy-patterns.md](docs/approval-policy-patterns.md) | Ready — submit via `2byrds/inspect_ai` fork |
 | Example | Agent solver composition cookbook | [examples/agent_solver_composition.py](examples/agent_solver_composition.py) | Ready for PR |
-| RFC / Feature | `model_graded_qa` with fixed-criterion templates | [rfcs/fixed-criterion-model-graded-qa.md](rfcs/fixed-criterion-model-graded-qa.md) | Open issue first |
+| RFC / Feature | `model_graded_qa` with fixed-criterion templates | [rfcs/fixed-criterion-model-graded-qa.md](rfcs/fixed-criterion-model-graded-qa.md) | [PR #3555](https://github.com/UKGovernmentBEIS/inspect_ai/pull/3555) — Merged ✅ |
 
 ## Motivation
 
@@ -45,6 +45,23 @@ covered in the existing Inspect documentation or examples:
 
 | PR | Description | Status |
 |----|-------------|--------|
-| TBD | Multi-value scorers + approval policy docs | Pending |
-| TBD | Agent solver composition example | Pending |
-| TBD | fixed_criterion RFC / issue | Pending |
+| [#3555](https://github.com/UKGovernmentBEIS/inspect_ai/pull/3555) | docs: document `{criterion}` variable usage in `model_graded_qa` | **Merged** ✅ (2026-03-23) |
+| Pending | docs: multi-value scorer patterns for dimensional evaluation | **Awaiting submission** — content in [docs/multi-value-scorers.md](docs/multi-value-scorers.md) |
+| Pending | docs: approval policy patterns for tool-calling agents | **Awaiting submission** — content in [docs/approval-policy-patterns.md](docs/approval-policy-patterns.md) |
+
+## Submission Instructions
+
+To submit the pending PRs:
+
+1. Create a branch in `2byrds/inspect_ai` fork:
+   ```bash
+   git checkout -b docs/multi-value-scorers
+   ```
+
+2. Copy the documentation content to the appropriate location in the Inspect docs:
+   - `docs/multi-value-scorers.md` → insert into `docs/scorers.qmd`
+   - `docs/approval-policy-patterns.md` → insert into `docs/approval.qmd`
+
+3. Open a PR from `2byrds/inspect_ai` to `UKGovernmentBEIS/inspect_ai`
+
+4. Record the PR numbers in `plans/oss-contributions.yaml` under `upstream_prs`
