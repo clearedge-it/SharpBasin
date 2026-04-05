@@ -76,15 +76,24 @@ phases:
           Documents the {criterion} template variable in model_graded_qa,
           including the fixed-criterion pattern for behavioral evaluations
           without per-sample targets. Closes upstream issue #1981.
-      - number: 3638
-        title: "docs: multi-value scorer patterns for dimensional agent evaluation"
-        url: https://github.com/UKGovernmentBEIS/inspect_ai/pull/3638
-        status: open
+      - number: null
+        title: "docs: multi-value scorer patterns for dimensional evaluation"
+        url: null
+        status: pending
         description: >-
-          Adds a Multi-Value Scorers section to docs/scorers.qmd documenting
-          the dict[str, Score] return pattern with per-key metric lists.
-          Includes a worked example of dimensional agent evaluation
-          (task_completion, behavioral_safety, process_fidelity).
+          Content prepared in contributions/inspect-ai/docs/multi-value-scorers.md.
+          Awaiting manual submission via 2byrds/inspect_ai fork to
+          UKGovernmentBEIS/inspect_ai. PR will add a Multi-Value Scorers
+          section to docs/scorers.qmd with a worked dimensional_scorer example.
+      - number: null
+        title: "docs: approval policy patterns for tool-calling agents"
+        url: null
+        status: pending
+        description: >-
+          Content prepared in contributions/inspect-ai/docs/approval-policy-patterns.md.
+          Awaiting manual submission via 2byrds/inspect_ai fork to
+          UKGovernmentBEIS/inspect_ai. PR will add an Approval Policies
+          cookbook entry to docs/approval.qmd.
     validation:
       - description: >-
           At least 2 upstream PRs opened against inspect_ai repo (docs,
