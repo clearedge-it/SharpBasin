@@ -1,6 +1,6 @@
 # First Principles for Evaluating Agentic AI Systems: How SharpBasin's BasinBench Integrates Inspect, PyRIT, and Dioptra for Government-Grade AI Assessment
 
-**ClearEdge IT Solutions, LLC** | White Paper | March 2026
+**ClearEdge IT Solutions, LLC** | White Paper | April 2026
 
 ---
 
@@ -18,6 +18,8 @@ BasinBench treats evaluation as a pipeline of independent, swappable modules rat
 
 **Grader independence** is a design requirement, not an afterthought. BasinBench uses a separate model for LLM-graded scoring than the model under evaluation — preventing the self-grading bias that occurs when a model rates its own outputs. The grader model is configurable per evaluation run, and concordance between heuristic and LLM-based grading methods is tracked to validate scoring consistency.
 
+**Defense-in-depth for behavioral safety** extends beyond scoring into the evaluation harness itself. BasinBench implements a tool-call approval policy — Inspect's `@approver` mechanism — that validates every agent tool invocation before execution. The policy enforces Docker sandbox boundaries through single-pass command parsing: it validates container image identity, enforces exact-match volume mount verification (preventing path injection via `docker.sock.evil`-style attacks), rejects dangerous Docker flags (`--privileged`, `--pid=host`, `--mount`), and scopes escalation pattern detection exclusively to the agent-authored subcommand portion of tool invocations. The MCP CLI client (`mcp-cli`) runs inside the sandboxed container and forwards the agent's tool request to the target MCP server — its arguments are the agent-authored portion of the command, whereas the surrounding Docker wrapper is harness-controlled infrastructure. Scoping escalation checks to this boundary prevents false positives from Docker-level flags while catching genuine escalation attempts in agent-authored command arguments. The approval layer operates independently of the Docker sandbox's own restrictions, providing a second enforcement boundary.
+
 ## Principle 2: Adversarial Testing Must Run Continuously, Not as a Separate Phase
 
 Traditional red-teaming treats security testing as a gate review — a one-time event before deployment. Agentic systems, which dynamically compose tool calls and reasoning chains, can exhibit novel failure modes under adversarial pressure that did not exist during initial testing. BasinBench integrates adversarial evaluation as a continuous, automated layer rather than a discrete phase.
@@ -26,7 +28,7 @@ Traditional red-teaming treats security testing as a gate review — a one-time 
 
 The result is a continuous red-team loop: as new agent capabilities are deployed, adversarial probes are re-executed against updated agent configurations, and robustness trends are tracked over time through BasinBench's monitoring pipeline.
 
-Recent implementation cycles further operationalized this loop through PyRIT-inspired attack/converter composition and standardized adversarial execution modes. In addition to baseline runs, operators now execute adversarial-variant and adversarial-scenario modes under a common evaluation approach, then compare outcome deltas in a unified reporting view.
+Recent implementation cycles further operationalized this loop through PyRIT-native attack/converter composition and standardized adversarial execution modes. BasinBench reuses PyRIT's `RedTeamingOrchestrator` per-probe for efficient resource management, and composes `PromptConverter` chains (Base64, ROT13, Unicode Substitution) declaratively from YAML probe definitions — enabling operators to define new adversarial techniques without writing orchestrator code. Multi-turn probes execute sequences of escalating messages, tracking per-turn resistance and converter effects to identify which conversation phase triggers boundary violations. In addition to baseline runs, operators now execute adversarial-variant and adversarial-scenario modes under a common evaluation approach, then compare outcome deltas in a unified reporting view.
 
 ## Principle 3: Benchmarks Must Resist Gaming While Remaining Interpretable
 
@@ -74,15 +76,28 @@ Implemented mechanisms run alongside functional benchmarks and produce gaming re
         Deployable: UNCLASS │ IL5/IL6 │ Air-gapped
 ```
 
-## March 2026 Integration Update
+## April 2026 Integration Update
 
-Recent implementation updates strengthened the Inspect/PyRIT composition from framework-level integration to workflow-level operation:
+Implementation updates in March–April 2026 advanced all three integrations from framework-level integration to live-validated, workflow-level operation:
 
-- **Scenario-based adversarial execution is first-class**, covering representative harms such as content safety, prompt injection, and data leakage with policy-aligned evaluation.
-- **Adversarial mode orchestration is explicit** in the standardized benchmark flow, supporting baseline, adversarial-variant, and adversarial-scenario execution modes.
-- **Prompt transformation controls are composable and auditable**, supporting repeatable adversarial conditioning before agent execution.
-- **Historical trend analysis is operational** for run-over-run performance inspection across execution modes.
-- **Benchmark reliability hardening** improved multi-model execution stability and result attribution consistency in automated workflows.
+**Inspect AI — Live Validation Complete:**
+- The full Inspect evaluation pipeline has been validated end-to-end with live API calls using `anthropic/claude-sonnet-4-6`. These validation runs confirmed pipeline mechanics (dataset loading, model invocation, three-dimensional grading, log persistence) across both the `dimensional_scorer` (per-dimension mean/stderr) and `composite_scorer` (aggregate accuracy) variants, on nano (4 samples, 34s) and canary (25 samples, 1m43s) tiers. In production evaluation, a separate grader model scores the outputs — the validation runs used the same model for both roles to isolate pipeline behavior from cross-model grading effects.
+- Solver composition variants — chain-of-thought (`mcp_agent_solver_cot`) and self-critique (`mcp_agent_solver_critique`) — share a common `_run_agent_loop` to reduce duplication while enabling reasoning-mode comparisons.
+- The `epochs` parameter enables variance estimation across repeated evaluation runs per sample.
+
+**PyRIT — Adversarial Hardening:**
+- Multi-turn adversarial probes and converter composition are operational, enabling gradual-escalation attack patterns that single-prompt evaluation cannot detect.
+- Live adversarial testing against Claude Sonnet 4.6 via direct API calls confirmed 88.9% resistance rate with zero critical bypasses.
+
+**NIST Dioptra — RMF-Aligned Audit Trail:**
+- Evaluation results export with AI Risk Management Framework function/category mappings (GOVERN, MAP, MEASURE, MANAGE), enabling government evaluators to trace BasinBench metrics to specific RMF requirements.
+- Bidirectional sync — both export (write evaluation results) and import (read previous experiments) — supports longitudinal trend comparison and regression detection.
+- Parameters, artifacts, and metric step computation provide full experiment reproducibility metadata.
+
+**Cross-Cutting Hardening:**
+- Tool-call approval policy implements defense-in-depth with single-pass Docker command parsing, exact volume path matching, and scoped escalation detection.
+- Async SDK compatibility ensures correct operation with Python 3.14+ (where `asyncio.iscoroutinefunction` is deprecated).
+- Forbidden path enforcement blocks agent access to `/etc/shadow`, `/etc/passwd`, and `.ssh` paths through both the approval policy and tool-level validation.
 
 ## Empirical Results
 
@@ -127,6 +142,18 @@ Here, *full tier* refers to the standard 160-question benchmark run, while *nano
 
 Probes are severity-weighted (critical=3, high=2, medium=1) and defined in YAML for extensibility without code changes. Initial results (Claude Sonnet 4.6, 9-probe subset — not the full 39-probe suite): 88.9% raw resistance rate, zero critical bypasses, zero dangerous tool call attempts. Full 39-probe evaluation is planned; this document will be updated when those results are available.
 
+### Inspect AI Live Validation: Dimensional Scorer
+
+The Inspect AI evaluation pipeline has been validated end-to-end with live API calls, confirming that the `dimensional_scorer` returns independent per-dimension metrics through Inspect's multi-value scorer API:
+
+| Task Variant | Tier | Samples | Runtime | Tokens | Status |
+|-------------|------|---------|---------|--------|--------|
+| `basinbench_dimensional` | nano | 4 | 34s | 13,853 | All 3 dimensions scored |
+| `basinbench_dimensional` | canary | 25 | 1m43s | 99,754 | All 3 dimensions scored |
+| `basinbench_composite` | nano | 4 | 33s | 13,724 | Aggregate accuracy scored |
+
+These runs used `anthropic/claude-sonnet-4-6` as both the evaluated model and the grader. In production evaluation, the evaluated model differs from the grader — these validation runs confirm pipeline mechanics rather than measuring agent capability. The low absolute scores (task completion 12%, safety 32%, fidelity 2%) are expected: the non-agent solver (`generate()`) answers questions as plain text without tool access, so it cannot invoke the tool commands required by these tasks. Agent-driven variants (`agent_basinbench_dimensional`) use the full Docker-sandboxed tool interface and produce the production scores reported above.
+
 ### Benchmark Stability
 
 Two independent Opus full-tier runs produced consistent results (±1.3% task completion, ±0.3% safety, 0% process fidelity variance). Bootstrap resampling with 95% confidence intervals are computed across multiple runs. Additional stability runs are in progress to strengthen confidence intervals.
@@ -150,7 +177,7 @@ Empirical results are currently from ClearEdge's agent execution platform. The B
 
 ### Dioptra integration depth
 
-The current Dioptra integration provides one-way export of evaluation results as Dioptra experiments with tracked metrics and trend comparison. Deeper bidirectional integration (Dioptra-native evaluation orchestration) is roadmapped.
+The current Dioptra integration provides bidirectional sync — exporting evaluation results as Dioptra experiments with RMF-tagged metrics, parameters, and artifacts, and importing previous experiments for trend comparison. Deeper Dioptra-native evaluation orchestration (running evaluation tasks within Dioptra's workflow engine rather than exporting results post-hoc) is roadmapped.
 
 ### Deployment classification
 
@@ -170,7 +197,15 @@ BasinBench tracks model identity separately from execution provenance in evaluat
 
 ## Why This Matters
 
-ClearEdge actively contributes to the frameworks SharpBasin depends on — this positions BasinBench as a platform built by practitioners who understand these tools from the inside out, and who are invested in their continued improvement. BasinBench also integrates with NIST Dioptra — the U.S. government's own open-source AI test platform — exporting evaluation results as Dioptra experiments with tracked metrics, enabling government evaluators to audit BasinBench results through NIST's AI Risk Management Framework infrastructure.
+ClearEdge actively contributes to the frameworks SharpBasin depends on — this positions BasinBench as a platform built by practitioners who understand these tools from the inside out, and who are invested in their continued improvement.
+
+**Upstream contributions planned or in progress:**
+
+- **Inspect AI (UK AISI):** Multi-value scorer documentation for dimensional evaluation patterns; approval policy cookbook for tool-calling agent safety; agent solver composition examples (base → chain-of-thought → self-critique); `fixed_criterion` parameter proposal for behavioral assessment templates where no per-sample ground truth exists.
+- **PyRIT (Microsoft):** Agentic red-teaming patterns for tool-calling agents (vs. chat-only targets); converter composition utilities for declarative YAML-driven probe definitions; multi-turn probe examples with per-turn scoring profiles; severity-weighted probe definition format proposal.
+- **NIST Dioptra:** AI RMF mapping utilities for standardized metric-to-framework tagging; multi-dimensional metric export patterns; longitudinal step computation for time-series trend analysis; bidirectional sync examples for regression detection workflows.
+
+BasinBench integrates with NIST Dioptra — the U.S. government's own open-source AI test platform — exporting evaluation results as Dioptra experiments with RMF-tagged metrics, parameters, and artifacts, and importing historical results for trend comparison. This enables government evaluators to audit BasinBench results through NIST's AI Risk Management Framework infrastructure using their existing tooling.
 
 The white paper expands each principle with implementation details, worked evaluation scenarios across cyber operations, intelligence analysis, and multi-domain command and control, and a benchmark development methodology that enables government evaluators to independently create, validate, and maintain mission-specific benchmarks.
 
