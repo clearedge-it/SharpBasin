@@ -1,0 +1,211 @@
+name: oss-contributions
+description: >-
+  Contribute enhancements back to the three open-source projects BasinBench
+  depends on — Inspect AI, PyRIT, and NIST Dioptra. Upstream PRs substantiate
+  the white paper claim that ClearEdge is a practitioner-contributor, strengthen
+  community relationships, and improve the frameworks for all users.
+
+goal_ids:
+  - SB-9   # Open-Source Upstream Contributions
+  - SB-11  # White Paper Strengthening
+
+upstream_goals:
+  - CG-2   # Governance
+  - AD-3   # Evidence and Observability
+
+phases:
+  - id: phase-1-inspect-ai
+    name: Contribute to UK AISI Inspect AI
+    branch: upstream/inspect-ai-contributions
+    targets:
+      - repo: UKGovernmentBEIS/inspect_ai
+        contributions:
+          - type: documentation
+            title: Multi-value scorer patterns for dimensional evaluation
+            description: >-
+              Document the pattern of returning dict values from @scorer
+              functions with per-key metric lists. BasinBench's
+              dimensional_scorer demonstrates this pattern for independent
+              mean/stderr tracking across evaluation dimensions. The current
+              Inspect docs cover single-value scorers well but lack examples
+              of multi-value scorer composition. PR would add a "Multi-Value
+              Scorers" section to the scorer documentation with a worked
+              example based on multi-dimensional agent evaluation.
+
+          - type: documentation
+            title: Approval policy patterns for tool-calling agents
+            description: >-
+              Document the @approver decorator pattern for implementing
+              tool-call approval policies. BasinBench's mcp_approval_policy
+              demonstrates Docker command validation, volume mount enforcement,
+              and escalation pattern detection — a non-trivial approval flow
+              that is not covered in existing Inspect docs. PR would add an
+              "Approval Policies" cookbook entry showing how to validate
+              tool arguments, reject dangerous patterns, and scope checks
+              to specific command segments.
+
+          - type: example
+            title: Agent solver composition cookbook
+            description: >-
+              Contribute a cookbook example showing solver composition for
+              agent evaluation: base solver → chain-of-thought variant →
+              self-critique variant, with a shared _run_agent_loop helper
+              to reduce duplication. Shows how to elicit reasoning without
+              changing the tool interface. Based on BasinBench's
+              mcp_agent_solver / mcp_agent_solver_cot / mcp_agent_solver_critique
+              pattern.
+
+          - type: feature
+            title: model_graded_qa with fixed-criterion templates
+            description: >-
+              Inspect's model_graded_qa expects per-sample targets, but
+              behavioral safety and process fidelity scoring use fixed
+              evaluation criteria (the same rubric applies to every sample).
+              BasinBench works around this by embedding criteria in the
+              template string. A first-class fixed_criterion parameter
+              would make this pattern explicit and reduce template boilerplate.
+              Open an issue or RFC before PR.
+
+    upstream_prs:
+      - number: 3555
+        title: "docs: document {criterion} variable usage in model_graded_qa"
+        url: https://github.com/UKGovernmentBEIS/inspect_ai/pull/3555
+        status: merged
+        merged_at: "2026-03-23"
+        description: >-
+          Documents the {criterion} template variable in model_graded_qa,
+          including the fixed-criterion pattern for behavioral evaluations
+          without per-sample targets. Closes upstream issue #1981.
+      - number: 3638
+        title: "docs: multi-value scorer patterns for dimensional agent evaluation"
+        url: https://github.com/UKGovernmentBEIS/inspect_ai/pull/3638
+        status: open
+        description: >-
+          Adds a Multi-Value Scorers section to docs/scorers.qmd documenting
+          the dict[str, Score] return pattern with per-key metric lists.
+          Includes a worked example of dimensional agent evaluation
+          (task_completion, behavioral_safety, process_fidelity).
+    validation:
+      - description: >-
+          At least 2 upstream PRs opened against inspect_ai repo (docs,
+          examples, or features). Record PR numbers in upstream_prs above.
+
+  - id: phase-2-pyrit
+    name: Contribute to Microsoft PyRIT
+    branch: upstream/pyrit-contributions
+    targets:
+      - repo: Azure/PyRIT
+        contributions:
+          - type: documentation
+            title: Agentic red-teaming patterns for tool-calling agents
+            description: >-
+              PyRIT's documentation focuses on chat-based red-teaming.
+              BasinBench extends PyRIT for agentic evaluation where the
+              target is a tool-calling agent, not a chatbot. Document the
+              pattern of wrapping agent tool-call interfaces as PyRIT
+              targets, including how to capture tool invocations alongside
+              text responses for scoring.
+
+          - type: feature
+            title: Converter composition for multi-step adversarial probes
+            description: >-
+              BasinBench's _get_converter_pipeline() builds converter
+              chains (Base64 → ROT13 → Unicode Substitution) for
+              adversarial probes. Document or contribute a ConverterChain
+              utility that composes converters declaratively from YAML
+              probe definitions, reducing boilerplate in orchestrator setup.
+
+          - type: example
+            title: Multi-turn adversarial probes with per-turn scoring
+            description: >-
+              Contribute an example showing multi-turn probe execution
+              where each turn is scored independently, producing a
+              per-turn resistance profile. BasinBench's multi-turn probe
+              implementation tracks turn_number and converter_used per
+              result, enabling analysis of which conversation turn
+              triggers boundary violations.
+
+          - type: feature
+            title: YAML-driven probe definitions with severity weights
+            description: >-
+              BasinBench defines probes in YAML with severity fields
+              (critical/high/medium) and computes weighted resistance
+              rates. Propose this as a standard probe definition format
+              for PyRIT, enabling organizations to share probe libraries
+              with consistent severity metadata.
+
+    upstream_prs: []
+    validation:
+      - description: >-
+          At least 1 upstream PR or issue opened against PyRIT repo.
+          Record PR numbers in upstream_prs above.
+
+  - id: phase-3-nist-dioptra
+    name: Contribute to NIST Dioptra
+    branch: upstream/dioptra-contributions
+    targets:
+      - repo: usnistgov/dioptra
+        contributions:
+          - type: feature
+            title: AI RMF mapping utilities for evaluation metrics
+            description: >-
+              BasinBench maps evaluation dimensions to NIST AI RMF
+              functions and categories (GOVERN, MAP, MEASURE, MANAGE)
+              and tags Dioptra experiments with RMF metadata. Contribute
+              a reusable AI_RMF_MAPPING module or utility that other
+              evaluation frameworks can use to tag their metrics with
+              RMF categories, promoting standardized AI risk reporting.
+
+          - type: documentation
+            title: Multi-dimensional metric export patterns
+            description: >-
+              Document how to export evaluation results with multiple
+              independent metric dimensions (not just a single accuracy
+              score) to Dioptra experiments. BasinBench exports
+              task_completion, behavioral_safety, and process_fidelity
+              as separate tracked metrics with longitudinal step numbers.
+              This pattern is useful for any multi-objective evaluation.
+
+          - type: feature
+            title: Longitudinal metric step computation
+            description: >-
+              BasinBench computes metric_step from run timestamps to
+              enable time-series trend analysis in Dioptra. Contribute
+              a _compute_run_step() utility that converts ISO timestamps
+              to ordinal step numbers, enabling any evaluation pipeline
+              to produce longitudinal Dioptra metric series.
+
+          - type: example
+            title: Bidirectional sync for evaluation trend analysis
+            description: >-
+              BasinBench's DioptraClient supports both export
+              (write evaluation results) and import (read previous
+              experiments for trend comparison). Contribute an example
+              showing the bidirectional workflow: export results after
+              each evaluation run, then import historical results to
+              compute metric deltas and flag regressions.
+
+    upstream_prs: []
+    validation:
+      - description: >-
+          At least 1 upstream PR or issue opened against Dioptra repo.
+          Record PR numbers in upstream_prs above.
+
+  - id: phase-4-white-paper-update
+    name: Update white paper with upstream contribution evidence
+    branch: feat/whitepaper-oss-evidence
+    repos:
+      - name: clearedge-it/SharpBasin
+        changes:
+          - file: papers/first-principles-agentic-ai-evaluation.md
+            description: >-
+              Add "Open-Source Contributions" subsection under "Why This
+              Matters" with specific upstream PR references. Add live
+              Inspect AI evaluation results (nano + canary dimensional
+              scorer output). Strengthen the Dioptra integration narrative
+              with RMF mapping and bidirectional sync details. Add
+              approval policy as defense-in-depth evidence.
+    dependencies:
+      - phase-1-inspect-ai
+      - phase-2-pyrit
+      - phase-3-nist-dioptra
